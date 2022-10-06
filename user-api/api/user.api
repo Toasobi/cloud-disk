@@ -1,0 +1,233 @@
+syntax = "v1"
+
+info(
+	author: "Toasobi"
+	date: "2022-09-26"
+)
+
+type (
+	UserLoginReq {
+		UserName string `form:"username"`
+		Password string `form:"password"`
+	}
+	UserLoginResp {
+		Token        string `form:"token"`
+		RefreshToken string `form:"refresh_Token"`
+	}
+)
+
+type (
+	UserRegisterReq {
+		Name     string `form:"name"`
+		Password string `form:"password"`
+		Email    string `form:"email"`
+		Code     string `form:"code"`
+	}
+	UserRegisterResp {
+		Status string `form:"status"`
+	}
+)
+
+type (
+	UserSendCodeReq {
+		Email string `form:"email"`
+	}
+	UserSendCodeResp {
+		Status string `form:"status"`
+	}
+)
+
+type (
+	FileUploadReq {
+		Hash string `form:"hash,optional"`
+		Name string `form:"name,optional"`
+		Ext  string `form:"ext,optional"`
+		Size int64  `form:"size,optional"`
+		Path string `form:"path,optional"`
+	}
+	FileUploadResp {
+		Identity string `form:"identity"`
+		Ext      string `form:"ext"`
+		Name     string `form:"name"`
+	}
+)
+
+type (
+	UserRepositorySaveReq {
+		ParentId           int    `form:"parentId"`
+		RepositoryIdentity string `form:"repositoryIdentity"`
+		Ext                string `form:"ext"`
+		Name               string `form:"name"`
+	}
+
+	UserRepositorySaveResp {
+		Status string `form:"status"`
+	}
+)
+
+type (
+	UserFileListReq {
+		Id   int64 `form:"id,optional"`
+		Page int64 `form:"page,optional"`
+		Size int64 `form:"size,optional"`
+	}
+	UserFileListResp {
+		List  []*UserFile `form:"list"`
+		Count int64       `form:"count"`
+	}
+
+	UserFile {
+		Id                 int64  `form:"id"`
+		Identity           string `form:"identity"`
+		RepositoryIdentity string `form:"repository_identity"`
+		Ext                string `form:"ext"` // 文件或文件夹类型
+		Name               string `form:"name"`
+		Path               string `form:"path"`
+		Size               string `form:"size"`
+	}
+)
+
+type (
+	UserFileUpdateReq {
+		Identity string `form:"identity"`
+		Name     string `form:"name"`
+	}
+	UserFileUpdateResp {
+		Name string `form:"name"`
+	}
+)
+
+type (
+	UserFolderCreateReq {
+		Name     string `form:"name"`
+		ParentId int    `form:"parent_id"`
+	}
+	UserFolderCreateResp {
+		Status string `form:"status"`
+	}
+)
+
+type (
+	UserFileDeleteReq {
+		Identity string `form:"identity"`
+	}
+	UserFileDeleteResp {
+		Status string `form:"status"`
+	}
+)
+
+type (
+	UserRefreshTokenReq {
+	}
+	UserRefreshTokenResp {
+		Token        string `form:"token"`
+		RefreshToken string `form:"refresh_Token"`
+	}
+)
+
+type (
+	UserUploadPrepareReq {
+		Md5  string `form:"md5"`
+		Name string `form:"name"`
+		Ext  string `form:"ext"`
+	}
+	UserUploadPrepareResp {
+		Identity string `form:"identity"`
+		UploadId string `form:"upload_id"`
+		Key      string `form:"key"`
+	}
+)
+
+type (
+	UserFileUploadChunkReq {
+		UploadId   string `form:"upload_id"`
+		Key        string `form:"key"`
+		PartNumber string `form:"part_number"`
+	}
+	UserFileUploadChunkResp {
+		Etag string `form:"etag"`
+	}
+)
+// @server(
+// 	group: user
+// 	prefix: user/api/v1
+// 	middleware: TestMiddleware
+// )
+
+type (
+	UserFileUploadChunkCompleteReq {
+		Key        string      `json:"key"`
+		UploadId   string      `json:"upload_id"`
+		CosObjects []CosObject `json:"cos_objects"`
+	}
+	UserFileUploadChunkCompleteResp {
+		Status string `json:"status"`
+	}
+
+	CosObject {
+		PartNumber int64  `json:"part_number"`
+		Etag       string `json:"etag"`
+	}
+)
+
+service user-api{
+	@doc "用户登录"
+	@handler userLogin
+	post /user/login(UserLoginReq) returns(UserLoginResp)
+	
+	@doc "用户注册"
+	@handler userRegister
+	post /user/register(UserRegisterReq) returns(UserRegisterResp)
+	
+	@doc "验证码发送"
+	@handler userSendCode
+	post /user/send-code(UserSendCodeReq) returns(UserSendCodeResp)
+	
+}
+
+@server(
+	middleware: Auth
+)
+
+service user-api{
+	@doc "文件上传"
+	@handler userUploadFile
+	post /user/upload(FileUploadReq)returns(FileUploadResp)
+	
+	@doc "用户文件关联存储"
+	@handler userRepositorySave
+	post /user/repository/save(UserRepositorySaveReq)returns(UserRepositorySaveResp)
+	
+	@doc "用户文件列表"
+	@handler  userFileList
+	get /user/file/list(UserFileListReq) returns(UserFileListResp)
+	
+	@doc "用户文件名修改"
+	@handler  userFileUpdate
+	post /user/file/update(UserFileUpdateReq) returns(UserFileUpdateResp)
+	
+	@doc "文件夹创建"
+	@handler  userFolderCreate
+	post /user/folder/create(UserFolderCreateReq) returns(UserFolderCreateResp)
+	
+	@doc "文件删除"
+	@handler userFileDelete
+	delete /user/file/delete(UserFileDeleteReq) returns(UserFileDeleteResp)
+	
+	@doc "刷新token"
+	@handler userRefreshToken
+	post /user/refresh/token(UserRefreshTokenReq) returns(UserRefreshTokenResp)
+	
+	@doc "文件秒传数据准备"
+	@handler userUploadPrepare
+	post /user/upload/prepare(UserUploadPrepareReq) returns(UserUploadPrepareResp)
+	
+	@doc "文件分片上传"
+	@handler userFileUploadChunk
+	post /user/file/upload/chunk(UserFileUploadChunkReq) returns(UserFileUploadChunkResp)
+	
+	@doc "分片上传完成"
+	@handler userFileUploadChunkComplete
+	post /user/file/upload/chunk/complete(UserFileUploadChunkCompleteReq) returns(UserFileUploadChunkCompleteResp)
+	
+}

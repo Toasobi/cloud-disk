@@ -1,0 +1,201 @@
+syntax = "proto3";
+
+option go_package = "./pb";
+
+package pb;
+
+
+//用户注册
+message GetUserRegisterReq {
+    string name = 1;
+    string password = 2;
+    string email = 3;
+    string code = 4;
+  }
+message GetUserRegisterResp {
+    string status= 1;
+  }
+
+
+
+//用户登录
+message GetUserLoginReq {
+  string username = 1;
+  string password = 2;
+}
+message GetUserLoginResp {
+  string token = 1;
+  string refreshToken = 2;
+}
+
+
+//发送验证码
+message GetUserSendCodeReq {
+  string email = 1;
+}
+message GetUserSendCodeResp {
+  string status = 1;
+}
+
+//上传文件
+message GetFileUploadReq {
+  string hash = 1;
+  string name = 2;
+  string ext = 3;
+  int64 size = 4;
+  string path = 5;
+}
+message GetFileUploadResp {
+  string identity = 1;
+  string ext = 2;
+  string name =3;
+}
+
+
+//关联用户数据库
+message GetUserRepositorySaveReq {
+  int64 parentId = 1;
+  string repositoryIdentity = 2;
+  string ext = 3;
+  string name = 4;
+  string userIdentity = 5;
+}
+
+message GetUserRepositorySaveResp {
+  string status = 1;
+  
+}
+
+//列出文件情况
+message GetUserFileListReq {
+  int64 id = 1;
+  int64 page = 2;
+  int64 size = 3;
+  string userIdentity = 4;
+  
+}
+message GetUserFileListResp {
+  repeated UserFile list = 1;
+  int64 count =2;
+
+  message UserFile {
+    int64 id = 1;
+    string identity = 2;
+    string repositoryIdentity = 3;
+    string ext = 4;
+    string name = 5;
+    string path = 6;
+    string size = 7;
+  }
+}
+
+//文件改名
+message GetUserFileUpdateReq {
+  string identity = 1;
+  string name = 2;
+  string userIdentity = 3;
+}
+message GetUserFileUpdateResp {
+  string name = 3;
+}
+
+//创建文件夹
+message GetUserFolderCreateReq {
+  string name = 1;
+  int64 parentId = 2;
+  string userIdentity = 3;
+}
+message GetUserFolderCreateResp {
+  string status = 1;
+}
+
+//文件删除
+message GetUserFileDeleteReq {
+  string identity = 1;
+  string userIdentity = 2;
+}
+message GetUserFileDeleteResp {
+  string status = 1;
+}
+
+//刷新token
+message GetUserRefreshTokenReq {
+  string authorization  = 1;
+}
+message GetUserRefreshTokenResp {
+  string token = 1;
+  string refreshToken = 2;
+}
+
+//分片上传准备
+message GetUserUploadPrepareReq {
+  string md5 = 1;
+  string name = 2;
+  string ext = 3;
+  string userIdentity = 4;
+}
+message GetUserUploadPrepareResp {
+  string identity = 1;
+  string uploadId = 2;
+  string key = 3;
+}
+
+//分片上传
+message GetUserFileUploadChunkReq {
+  string uploadId = 1;
+  string key = 2;
+  string partNumber = 3;
+}
+message GetUserFileUploadChunkResp {
+  string etag = 1;
+}
+
+
+//分片上传完成
+message GetUserFileUploadChunkCompleteReq {
+  string key = 1;
+  string uploadId = 2;
+  repeated CosObject CosObjects = 3;
+
+  message CosObject {
+    int64 partNumber = 1;
+    string etag = 2;
+  }
+}
+message GetUserFileUploadChunkCompleteResp {
+  string status = 1;
+}
+
+
+  
+  
+  //service
+  service usercenter {
+    //用户注册
+    rpc  GetUserRegister(GetUserRegisterReq) returns(GetUserRegisterResp);
+    //用户登录
+    rpc  GetUserLogin(GetUserLoginReq) returns(GetUserLoginResp);
+    //发送验证码
+    rpc  GetUserSendCode(GetUserSendCodeReq) returns(GetUserSendCodeResp);
+    //发送文件
+    rpc  GetFileUpload(GetFileUploadReq) returns(GetFileUploadResp);
+    //关联用户数据库
+    rpc  GetUserRepositorySave(GetUserRepositorySaveReq) returns(GetUserRepositorySaveResp);
+    //列出文件情况
+    rpc  GetUserFileList(GetUserFileListReq) returns(GetUserFileListResp);
+    //更新文件
+    rpc  GetUserFileUpdate(GetUserFileUpdateReq) returns(GetUserFileUpdateResp);
+    //创建文件夹
+    rpc  GetUserFolderCreate(GetUserFolderCreateReq) returns(GetUserFolderCreateResp);
+    //文件删除
+    rpc  GetUserFileDelete(GetUserFileDeleteReq) returns(GetUserFileDeleteResp);
+    //刷新token
+    rpc  GetUserRefreshToken(GetUserRefreshTokenReq) returns(GetUserRefreshTokenResp);
+    //分片上传准备
+    rpc  GetUserUploadPrepare(GetUserUploadPrepareReq) returns(GetUserUploadPrepareResp);
+    //分片上传
+    rpc  GetUserFileUploadChunk(GetUserFileUploadChunkReq) returns(GetUserFileUploadChunkResp);
+    //分片上传完成
+    rpc  GetUserFileUploadChunkComplete(GetUserFileUploadChunkCompleteReq) returns(GetUserFileUploadChunkCompleteResp);
+
+  }
